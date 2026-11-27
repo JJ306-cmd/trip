@@ -258,3 +258,13 @@ test('호출 제한: 분당, 하루 총량, 서버 429', async (t) => {
   assert.equal((await fetch(`${base}/healthz`)).status, 200);
   assert.equal((await fetch(`${base}/privacy`)).status, 200);
 });
+
+test('사진 경로: 없는 파일은 404, 폴더 밖은 읽지 않음', async (t) => {
+  const server = createApp({}).listen(0);
+  t.after(() => server.close());
+  await new Promise((r) => server.once('listening', r));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  for (const path of ['/images/none.jpg', '/images/..%2Fapp.js', '/images/README.txt']) {
+    assert.equal((await fetch(base + path)).status, 404, path);
+  }
+});

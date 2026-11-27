@@ -6,76 +6,167 @@
   <title>국내여행 동선</title>
   <link rel="stylesheet" href="/style.css">
 </head>
-<body>
-  <aside>
-    <h1>국내여행 동선</h1>
-    <p id="banner" class="banner" hidden></p>
-    <form id="search">
-      <label for="region">여행 지역</label>
-      <div class="row">
-        <input id="region" placeholder="예: 경주, 강릉, 전주" required maxlength="40">
-        <button>추천받기</button>
+<body data-view="home">
+  <header class="top">
+    <a class="brand" href="#home"><span class="logo" aria-hidden="true"></span>국내여행 동선</a>
+    <nav aria-label="주 메뉴">
+      <a href="#home" data-nav="home"><i aria-hidden="true">🏠</i>홈</a>
+      <a href="#create" data-nav="create"><i aria-hidden="true">📝</i>일정 만들기</a>
+      <a href="#result" data-nav="result"><i aria-hidden="true">🗺️</i>내 일정</a>
+    </nav>
+  </header>
+  <p id="banner" class="banner" hidden></p>
+
+  <section id="view-home" class="view">
+    <div class="hero">
+      <h1>취향대로 짜는<br>나만의 국내여행</h1>
+      <p>지역만 알려주면 명소와 맛집, 이동 순서까지 한 번에.</p>
+      <form id="hero-search" class="searchbar">
+        <label for="hero-region">어디로 떠나고 싶으신가요?</label>
+        <input id="hero-region" placeholder="예: 강릉" required maxlength="40">
+        <button aria-label="검색">🔍</button>
+      </form>
+      <div class="chips">
+        <button type="button" data-region="제주"># 제주</button>
+        <button type="button" data-region="강릉"># 강릉</button>
+        <button type="button" data-region="가평"># 가평</button>
+        <button type="button" data-region="경주"># 경주</button>
+        <button type="button" data-region="부산"># 부산</button>
+        <button type="button" data-region="여수"># 여수</button>
       </div>
-      <div class="grid">
-        <label>기간<select id="days"><option value="1">당일</option><option value="2" selected>1박 2일</option><option value="3">2박 3일</option></select></label>
-        <label>시작 시각<input id="start-time" type="time" value="10:00"></label>
+    </div>
+    <ul class="features">
+      <li><i aria-hidden="true">✨</i>동행 맞춤 추천</li>
+      <li><i aria-hidden="true">📅</i>일정 자동 생성</li>
+      <li><i aria-hidden="true">📍</i>지도 동선 안내</li>
+      <li><i aria-hidden="true">🅿️</i>주차·대중교통</li>
+      <li><i aria-hidden="true">⛅</i>날씨 확인</li>
+    </ul>
+    <div class="wrap">
+      <h2>이런 여행지는 어때요</h2>
+      <p class="hint">누르면 바로 추천 장소를 찾아요.</p>
+      <div class="cards">
+        <button type="button" class="card" data-region="제주"><span class="art art-jeju"></span><b>제주도</b><span class="tags"><em>자연</em><em>바다</em></span></button>
+        <button type="button" class="card" data-region="강릉"><span class="art art-gangneung"></span><b>강릉</b><span class="tags"><em>바다</em><em>커피</em></span></button>
+        <button type="button" class="card" data-region="경주"><span class="art art-gyeongju"></span><b>경주</b><span class="tags"><em>역사</em><em>문화</em></span></button>
+        <button type="button" class="card" data-region="부산"><span class="art art-busan"></span><b>부산</b><span class="tags"><em>도시</em><em>야경</em></span></button>
       </div>
-      <div class="grid">
-        <label>누구와<select id="companion"><option value="family">가족여행</option><option value="couple" selected>커플</option><option value="friends">친구들</option><option value="solo">혼자</option></select></label>
-        <label>여행 시작일<input id="trip-date" type="date" required></label>
+      <div class="cta">
+        <p><b>다음 여행은 어디인가요?</b>조건을 고르면 하루하루의 일정으로 정리해 드려요.</p>
+        <a class="pill" href="#create">여행 일정 만들기 →</a>
       </div>
-      <label for="origin">출발지 (선택, 매일 여기서 출발)</label>
-      <input id="origin" placeholder="예: 경주역" maxlength="60">
-      <fieldset>
-        <legend>이동수단</legend>
-        <label><input type="radio" name="mode" value="car" checked> 자차</label>
-        <label><input type="radio" name="mode" value="transit"> 대중교통</label>
-      </fieldset>
-    </form>
-    <details id="tickets" hidden>
-      <summary>오가는 기차·고속·시외버스 시간표</summary>
-      <label>교통편<select id="t-kind"><option value="train">기차</option><option value="express">고속버스</option><option value="intercity">시외버스 (오늘만)</option></select></label>
-      <div class="grid">
-        <label>출발지<input id="t-from-q" placeholder="예: 서울" maxlength="20"></label>
-        <label>도착지<input id="t-to-q" placeholder="예: 경주" maxlength="20"></label>
+      <p class="hint"><a href="/privacy">개인정보 안내</a></p>
+    </div>
+  </section>
+
+  <section id="view-create" class="view" inert>
+    <div class="col-form">
+      <div class="panel">
+        <h2>여행 일정 만들기</h2>
+        <p class="hint">몇 가지만 알려주시면 추천 장소를 찾아 드려요.</p>
+        <form id="search">
+          <label for="region">여행 지역</label>
+          <input id="region" placeholder="예: 경주, 강릉, 전주" required maxlength="40">
+          <div class="grid">
+            <label>여행 기간<select id="days"><option value="1">당일</option><option value="2" selected>1박 2일</option><option value="3">2박 3일</option></select></label>
+            <label>누구와<select id="companion"><option value="family">가족여행</option><option value="couple" selected>커플</option><option value="friends">친구들</option><option value="solo">혼자</option></select></label>
+          </div>
+          <div class="grid">
+            <label>여행 시작일<input id="trip-date" type="date" required></label>
+            <label>시작 시각<input id="start-time" type="time" value="10:00"></label>
+          </div>
+          <label for="origin">출발지 (선택, 매일 여기서 출발)</label>
+          <input id="origin" placeholder="예: 경주역" maxlength="60">
+          <fieldset class="modes">
+            <legend>이동수단</legend>
+            <label><input type="radio" name="mode" value="car" checked><span>🚗 자차</span></label>
+            <label><input type="radio" name="mode" value="transit"><span>🚌 대중교통</span></label>
+          </fieldset>
+          <button class="primary">추천 장소 찾기 →</button>
+        </form>
       </div>
-      <button id="t-find" type="button">역·터미널 찾기</button>
-      <div id="t-select" hidden>
+      <details id="tickets" class="panel" hidden>
+        <summary>오가는 기차·고속·시외버스 시간표</summary>
+        <label>교통편<select id="t-kind"><option value="train">기차</option><option value="express">고속버스</option><option value="intercity">시외버스 (오늘만)</option></select></label>
         <div class="grid">
-          <label>타는 곳<select id="t-from"></select></label>
-          <label>내리는 곳<select id="t-to"></select></label>
-          <label>가는 날<input id="t-date" type="date"></label>
-          <label>오는 날<input id="t-back-date" type="date"></label>
+          <label>출발지<input id="t-from-q" placeholder="예: 서울" maxlength="20"></label>
+          <label>도착지<input id="t-to-q" placeholder="예: 경주" maxlength="20"></label>
         </div>
-        <button id="t-go" type="button">가는 편 조회</button>
-        <button id="t-back" type="button">오는 편 조회</button>
+        <button id="t-find" type="button">역·터미널 찾기</button>
+        <div id="t-select" hidden>
+          <div class="grid">
+            <label>타는 곳<select id="t-from"></select></label>
+            <label>내리는 곳<select id="t-to"></select></label>
+            <label>가는 날<input id="t-date" type="date"></label>
+            <label>오는 날<input id="t-back-date" type="date"></label>
+          </div>
+          <button id="t-go" type="button">가는 편 조회</button>
+          <button id="t-back" type="button">오는 편 조회</button>
+        </div>
+        <p id="t-status" class="hint" role="status"></p>
+        <div id="t-picked" class="hint"></div>
+        <ul id="t-list"></ul>
+      </details>
+    </div>
+    <div class="col-picks">
+      <section id="picks" class="panel" hidden>
+        <div id="weather" class="weather"></div>
+        <h2>추천 장소</h2>
+        <div id="ai-box" hidden>
+          <p class="label">여행 스타일 (여러 개 선택 가능)</p>
+          <div class="styles">
+            <button type="button" aria-pressed="false">맛집</button>
+            <button type="button" aria-pressed="false">자연</button>
+            <button type="button" aria-pressed="false">역사</button>
+            <button type="button" aria-pressed="false">액티비티</button>
+            <button type="button" aria-pressed="false">힐링</button>
+            <button type="button" aria-pressed="false">실내</button>
+          </div>
+          <label for="preference">AI에게 알려줄 취향</label>
+          <input id="preference" maxlength="150" placeholder="예: 아이와 함께, 많이 걷지 않게, 해산물">
+          <div class="examples">
+            <button type="button">부모님과 조용하게 다니고 싶어요</button>
+            <button type="button">아이와 함께 가기 좋은 곳이 좋아요</button>
+          </div>
+          <button id="ai" type="button">✨ AI 맞춤 추천</button>
+          <p class="hint">누르면 지역, 취향, 장소 이름과 분류가 AI 회사로 전송돼요.</p>
+          <p id="ai-summary" class="banner" hidden></p>
+        </div>
+        <p class="hint">가고 싶은 곳을 고르세요. <span id="count"></span></p>
+        <h3>명소·구경거리</h3>
+        <ul id="attractions" class="places"></ul>
+        <h3>맛집</h3>
+        <ul id="foods" class="places"></ul>
+        <button id="build" type="button" class="primary">일정 만들기 →</button>
+      </section>
+      <div id="picks-empty" class="panel empty">
+        <span class="art art-gyeongju"></span>
+        <p><b>추천 장소가 여기에 나타나요</b>지역을 입력하고 "추천 장소 찾기"를 눌러 주세요.</p>
       </div>
-      <p id="t-status" class="hint" role="status"></p>
-      <div id="t-picked" class="hint"></div>
-      <ul id="t-list"></ul>
-    </details>
-    <p id="status" role="status"></p>
-    <section id="picks" hidden>
-      <div id="weather" class="hint"></div>
-      <h2>추천 장소</h2>
-      <div id="ai-box" hidden>
-        <label for="preference">AI에게 알려줄 취향</label>
-        <input id="preference" maxlength="200" placeholder="예: 아이와 함께, 많이 걷지 않게, 해산물">
-        <button id="ai" type="button">AI 맞춤 추천</button>
-        <p class="hint">누르면 지역, 취향, 장소 이름과 분류가 AI 회사로 전송돼요.</p>
-        <p id="ai-summary" class="banner" hidden></p>
+    </div>
+  </section>
+
+  <section id="view-result" class="view" data-tab="list" inert>
+    <div class="col-plan">
+      <div class="trip-head">
+        <h2 id="trip-title">내 일정</h2>
+        <p id="trip-tags" class="tags"></p>
+        <a class="pill" href="#create">조건 바꾸기</a>
       </div>
-      <p class="hint">가고 싶은 곳을 고르세요. <span id="count"></span></p>
-      <h3>명소·구경거리</h3>
-      <ul id="attractions" class="places"></ul>
-      <h3>맛집</h3>
-      <ul id="foods" class="places"></ul>
-      <button id="build" type="button" class="primary">동선 만들기</button>
-    </section>
-    <section id="plan" hidden></section>
-    <p class="hint"><a href="/privacy">개인정보 안내</a></p>
-  </aside>
-  <main id="map" aria-label="지도"></main>
+      <div class="result-tabs">
+        <button type="button" data-tab="list" aria-pressed="true">일정 보기</button>
+        <button type="button" data-tab="map" aria-pressed="false">지도 보기</button>
+      </div>
+      <section id="plan" hidden></section>
+      <div id="plan-empty" class="panel empty">
+        <p><b>아직 만든 일정이 없어요</b>장소를 고르고 "일정 만들기"를 눌러 주세요.</p>
+        <a class="pill" href="#create">일정 만들러 가기</a>
+      </div>
+    </div>
+    <main id="map" aria-label="지도"></main>
+  </section>
+
+  <p id="status" role="status"></p>
   <script type="module" src="/app.js"></script>
 </body>
 </html>

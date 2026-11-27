@@ -88,7 +88,7 @@ async function kakaoMap(key) {
     for (const p of paths) {
       items.push(new K.Polyline({
         map: view, path: p.points.map(([x, y]) => new K.LatLng(y, x)),
-        strokeWeight: 5, strokeColor: '#0b6e5f', strokeOpacity: 0.8, strokeStyle: p.estimated ? 'shortdash' : 'solid',
+        strokeWeight: 5, strokeColor: '#1668e3', strokeOpacity: 0.8, strokeStyle: p.estimated ? 'shortdash' : 'solid',
       }));
     }
     if (stops.length) view.setBounds(bounds);
@@ -117,7 +117,7 @@ async function osmMap() {
       L.marker([s.lat, s.lng], { icon, title: s.name }).bindTooltip(el('span', { textContent: s.name })).addTo(layer);
     }
     for (const p of paths) {
-      L.polyline(p.points.map(([x, y]) => [y, x]), { color: '#0b6e5f', weight: 5, dashArray: p.estimated ? '8 8' : null }).addTo(layer);
+      L.polyline(p.points.map(([x, y]) => [y, x]), { color: '#1668e3', weight: 5, dashArray: p.estimated ? '8 8' : null }).addTo(layer);
     }
     if (stops.length) view.fitBounds(stops.map((s) => [s.lat, s.lng]), { padding: [40, 40] });
   };
@@ -151,12 +151,12 @@ function sketchMap() {
     const at = ([x, y]) => [400 + (x * 0.81 - (minX + maxX) / 2) * k, 400 - (y - (minY + maxY) / 2) * k];
     project = (p) => ({ svg, xy: at([p.lng, p.lat]) });
     for (const p of paths) {
-      svg.append(make('polyline', { points: p.points.map((q) => at(q).join(',')).join(' '), fill: 'none', stroke: '#0b6e5f', 'stroke-width': 3, 'stroke-dasharray': p.estimated ? '8 8' : 'none' }));
+      svg.append(make('polyline', { points: p.points.map((q) => at(q).join(',')).join(' '), fill: 'none', stroke: '#1668e3', 'stroke-width': 3, 'stroke-dasharray': p.estimated ? '8 8' : 'none' }));
     }
     for (const s of stops) {
       const [x, y] = at([s.lng, s.lat]);
       svg.append(
-        make('circle', { cx: x, cy: y, r: 14, fill: s.type === 'food' ? '#b4531f' : '#0b6e5f' }),
+        make('circle', { cx: x, cy: y, r: 14, fill: s.type === 'food' ? '#e8663c' : '#1668e3' }),
         make('text', { x, y: y + 5, 'text-anchor': 'middle', fill: '#fff', 'font-size': 14 }, String(s.n)),
         make('text', { x, y: y + 32, 'text-anchor': 'middle', fill: '#17211f', 'font-size': 14 }, s.name),
       );
@@ -179,6 +179,57 @@ async function initMap(jsKey) {
   }
   return sketchMap();
 }
+
+const submit = $('search').querySelector('button');
+
+/* ---------- 화면 전환: 홈 / 일정 만들기 / 내 일정 ---------- */
+const VIEWS = ['home', 'create', 'result'];
+function applyView() {
+  const view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'home';
+  if (document.body.dataset.view !== view) { document.body.dataset.view = view; window.scrollTo(0, 0); }
+  for (const v of VIEWS) $('view-' + v).inert = v !== view;
+  for (const a of document.querySelectorAll('[data-nav]')) a.toggleAttribute('aria-current', false);
+  document.querySelector(`[data-nav=${view}]`).setAttribute('aria-current', 'page');
+  if (view === 'result') redraw();
+}
+// 지도는 보이는 상태에서 다시 그려야 크기가 맞음
+function redraw() {
+  if (!map) return;
+  if (plan) showDay(plan.current);
+  else if (data) map(data.attractions.slice(0, 10).map((p, i) => ({ ...p, n: i + 1 })), []);
+}
+function go(view) {
+  if (location.hash === '#' + view) applyView();
+  else location.hash = view;
+}
+window.addEventListener('hashchange', applyView);
+
+function startRegion(region) {
+  if (submit.disabled) return;
+  $('region').value = region;
+  go('create');
+  $('search').requestSubmit();
+}
+$('hero-search').addEventListener('submit', (event) => {
+  event.preventDefault();
+  startRegion($('hero-region').value.trim());
+});
+for (const b of document.querySelectorAll('[data-region]')) b.addEventListener('click', () => startRegion(b.dataset.region));
+for (const b of document.querySelectorAll('.styles button')) {
+  b.addEventListener('click', () => b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'));
+}
+for (const b of document.querySelectorAll('.examples button')) b.addEventListener('click', () => { $('preference').value = b.textContent; });
+for (const b of document.querySelectorAll('.result-tabs button')) {
+  b.addEventListener('click', () => {
+    $('view-result').dataset.tab = b.dataset.tab;
+    for (const o of document.querySelectorAll('.result-tabs button')) o.setAttribute('aria-pressed', o === b);
+    redraw();
+  });
+}
+const styleText = () => {
+  const picked = [...document.querySelectorAll('.styles [aria-pressed=true]')].map((b) => b.textContent);
+  return picked.length ? `스타일: ${picked.join(', ')}. ` : '';
+};
 
 /* ---------- 추천 목록 ---------- */
 const selected = () => [...document.querySelectorAll('.places input:checked')]
@@ -209,6 +260,7 @@ function renderPicks() {
 $('search').addEventListener('submit', async (event) => {
   event.preventDefault();
   const button = event.target.querySelector('button');
+  go('create');
   button.disabled = true;
   status('추천 장소를 찾는 중…');
   const mine = ++version;
@@ -219,6 +271,8 @@ $('search').addEventListener('submit', async (event) => {
     guide.stop();
     plan = null;
     $('plan').hidden = true;
+    $('trip-title').textContent = '내 일정';
+    $('trip-tags').replaceChildren();
     renderPicks();
     loadWeather(data.center);
     map(data.attractions.slice(0, 10).map((p, i) => ({ ...p, n: i + 1 })), []);
@@ -238,7 +292,7 @@ $('ai').addEventListener('click', async () => {
   try {
     const answer = await api('/api/ai/recommend', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ region: $('region').value.trim().slice(0, 40), days: Number($('days').value), preference: `동행: ${companionLabel()}. ${$('preference').value.trim()}`.slice(0, 200), candidates }),
+      body: JSON.stringify({ region: $('region').value.trim().slice(0, 40), days: Number($('days').value), preference: `동행: ${companionLabel()}. ${styleText()}${$('preference').value.trim()}`.slice(0, 200), candidates }),
     });
     if (mine !== version || current !== data) return;
     const reasons = new Map(answer.picks.map((p) => [p.id, p.reason]));
@@ -289,9 +343,13 @@ async function build() {
     }
     if (mine !== version) return;
     plan = { id: mine, days: result, mode: travel, go, back: back && { ...back } };
+    const period = $('days').selectedOptions[0].textContent;
+    $('trip-title').textContent = `${data.center.name} ${period}`;
+    $('trip-tags').replaceChildren(...[companionLabel(), travel === 'car' ? '자차' : '대중교통', `장소 ${places.length}곳`]
+      .map((t) => el('em', { textContent: '#' + t })));
     showDay(0);
     status('');
-    $('plan').scrollIntoView({ behavior: 'smooth' });
+    return true;
   } catch (e) { status(e.message); }
   finally { $('build').disabled = false; }
 }
@@ -392,13 +450,12 @@ function showDay(index) {
   plan.current = index;
   const day = plan.days[index];
   const offset = day.origin ? 1 : 0;
-  const tabs = el('div', { className: 'tabs' }, ...plan.days.map((_, i) => {
-    const b = el('button', { type: 'button', textContent: `${i + 1}일차`, onclick: () => showDay(i) });
-    b.setAttribute('aria-pressed', i === index);
-    return b;
-  }));
   const items = [];
-  if (day.origin) items.push(el('li', { className: 'stop', textContent: `출발: ${day.origin.name}` }));
+  const photo = (place, n) => el('div', { className: 'photo' },
+    place.image ? el('img', { src: place.image, alt: '' }) : el('i', { textContent: place.type === 'food' ? '🍽️' : place.type === 'origin' ? '🚩' : '📸' }),
+    n && el('b', { className: 'num', textContent: n }));
+  if (day.origin) items.push(el('li', { className: 'stop' },
+    el('time', { textContent: '출발' }), photo({ type: 'origin' }), el('div', {}, el('strong', { textContent: day.origin.name }))));
   day.rows.forEach((r, i) => {
     const li = i + offset - 1;
     if (li >= 0) {
@@ -407,16 +464,18 @@ function showDay(index) {
       items.push(legView(day.route.legs[li], day.points[li], day.points[li + 1], plan.mode === 'transit' ? depart : null, r.arrive));
     }
     items.push(el('li', { className: 'stop ' + r.place.type },
-      el('b', { className: 'num', textContent: i + 1 }), el('strong', { textContent: r.place.name }),
-      el('div', { className: 'meta', textContent: `${hhmm(r.begin)}–${hhmm(r.leave)}${r.label ? ' · ' + r.label : ''}${r.wait > 0 ? ` · 도착 후 여유 ${r.wait}분` : ''}` }),
-      link(r.place.url, '장소 정보'),
-      plan.mode === 'car' && !data.demo && parkingView(r.place),
+      el('time', { textContent: hhmm(r.begin) }),
+      photo(r.place, i + 1),
+      el('div', {},
+        el('strong', { textContent: r.place.name }),
+        el('div', { className: 'meta', textContent: `${hhmm(r.begin)}–${hhmm(r.leave)}${r.label ? ' · ' + r.label : ''}${r.wait > 0 ? ` · 도착 후 여유 ${r.wait}분` : ''}` }),
+        link(r.place.url, '장소 정보'),
+        plan.mode === 'car' && !data.demo && parkingView(r.place)),
     ));
   });
   const total = day.route.legs.reduce((s, l) => s + l.duration, 0);
   const end = day.rows.at(-1)?.leave;
-  $('plan').replaceChildren(...[
-    el('h2', { textContent: `추천 동선 (${companionLabel()})` }), tabs,
+  const body = el('div', { className: 'day-body' }, ...[
     el('p', { className: 'hint', textContent: weatherText(index) }),
     guideBox,
     rainy(index) && el('p', { className: 'banner', textContent: '비나 눈 가능성이 있어요. 실내 장소를 함께 고려하고 우산을 챙기세요.' }),
@@ -429,6 +488,13 @@ function showDay(index) {
     el('ol', { className: 'timeline' }, ...items),
     el('p', { className: 'hint', textContent: '체류시간은 명소 90분, 식사 60분으로 가정했어요. 영업시간·휴무일은 반영되지 않으니 방문 전에 확인하세요.' }),
   ].filter(Boolean));
+  // 날짜 머리글을 누르면 그 날을 펼치고 지도도 바꿈
+  $('plan').replaceChildren(...plan.days.flatMap((_, i) => {
+    const head = el('button', { type: 'button', className: 'day-head', onclick: () => showDay(i) },
+      el('b', { textContent: `DAY ${i + 1}` }), el('span', { textContent: dateOf(i) }));
+    head.setAttribute('aria-expanded', i === index);
+    return i === index ? [head, body] : [head];
+  }));
   $('plan').hidden = false;
   map(
     [...(day.origin ? [{ ...day.origin, n: '출' }] : []), ...day.rows.map((r, i) => ({ ...r.place, n: i + 1 }))],
@@ -440,7 +506,7 @@ function showDay(index) {
   renderGuide(guide.state());
 }
 
-$('build').addEventListener('click', build);
+$('build').addEventListener('click', async () => { if (await build()) go('result'); });
 // 동행을 바꾸면 추천을 다시 받고, 날짜·기간을 바꾸면 날씨 표시를 갱신
 $('companion').addEventListener('change', () => data && $('search').requestSubmit());
 for (const id of ['trip-date', 'days']) $(id).addEventListener('change', () => {
@@ -457,17 +523,21 @@ document.querySelectorAll('input[name=mode]').forEach((r) => r.addEventListener(
 }));
 
 /* ---------- 시작 ---------- */
-const submit = $('search').querySelector('button');
 submit.disabled = true;
+$('hero-search').querySelector('button').disabled = true;
 const config = await api('/api/config');
 map = await initMap(config.jsKey);
 $('ai-box').hidden = !config.ai;
 initTickets(config.tickets, mode() === 'transit');
 hasWeather = config.weather;
 submit.disabled = false;
+$('hero-search').querySelector('button').disabled = false;
 if (!config.live) {
   $('banner').textContent = '예시 모드: 경주만 검색할 수 있고, 식당은 가상이며 이동시간은 추정치예요. 실제 정보는 카카오 API 키를 넣으면 나와요.';
   $('banner').hidden = false;
   $('region').value = '경주';
   $('origin').disabled = true;
 }
+// 새로고침한 경우 일정이 없으므로 결과 화면 대신 첫 화면
+if (location.hash === '#result') history.replaceState(null, '', '#home');
+applyView();

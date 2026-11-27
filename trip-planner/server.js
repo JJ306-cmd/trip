@@ -44,6 +44,14 @@ export function createApp({ restKey = '', jsKey = '', kakao = restKey ? createKa
         const refused = limiter(group, client);
         if (refused) return send(res, 429, { error: refused });
       }
+      // public/images 에 직접 넣은 사진 (없으면 화면의 그림이 보임)
+      const image = req.method === 'GET' && url.pathname.match(/^\/images\/([\w-]+\.(jpg|png|webp))$/);
+      if (image) {
+        const body = await readFile(root + 'public/images/' + image[1]).catch(() => null);
+        if (!body) return send(res, 404, { error: '사진이 없어요.' });
+        res.writeHead(200, { 'Content-Type': image[2] === 'jpg' ? 'image/jpeg' : `image/${image[2]}` });
+        return res.end(body);
+      }
       if (req.method === 'GET' && Object.hasOwn(FILES, url.pathname)) {
         const [file, type] = FILES[url.pathname];
         return send(res, 200, await readFile(root + 'public/' + file, 'utf8'), type);

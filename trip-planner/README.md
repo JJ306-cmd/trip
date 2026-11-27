@@ -79,3 +79,8 @@ REST 키는 서버에서만 사용합니다. `.env` 는 GitHub에 올리지 마�
 ## 파일
 - `server.js` 웹 서버 · `kakao.js` 카카오 API · `ai.js` AI 추천 · `weather.js` 날씨 · `extras.js` 선택 기능 · `demo.js` 예시 데이터
 - `public/planner.js` 동선 계산 · `public/app.js` 화면과 지도
+
+## 화면 구성과 사진
+- 홈, 일정 만들기, 내 일정의 세 화면입니다. 휴대폰에서는 아래 메뉴로 이동합니다.
+- 풍경은 코드로 그린 그림입니다. 사진으로 바꾸려면 `public/images/README.txt` 를 보세요.
+- 별점, 인원, 예산, 일정 저장, 로그인 기능은 없습니다.
